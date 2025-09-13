@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Student Wellness Monitor – AI-THON India</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --saffron: #ff9933;
+            --green: #138808;
+            --blue: #1a73e8;
+            --bg: #f7fafc;
+            --card: #fff;
+            --shadow: 0 4px 16px rgba(0,0,0,0.08);
+            --radius: 18px;
+            --font: 'Baloo 2', cursive, sans-serif;
+        }
+        body {
+            margin: 0;
+            background: var(--bg);
+            font-family: var(--font);
+            color: #222;
+            min-height: 100vh;
+        }
+        .centered {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--saffron) 0%, var(--bg) 100%);
+        }
+        .card {
+            background: var(--card);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 2rem 2.5rem;
+            max-width: 400px;
+            width: 100%;
+            margin: 1rem auto;
+            text-align: center;
+        }
+        h1, h2, h3 {
+            font-family: var(--font);
+            margin-top: 0;
+        }
+        h1 {
+            color: var(--blue);
+            font-size: 2.1rem;
+            margin-bottom: 0.5rem;
+        }
+        label {
+            display: block;
+            margin: 1rem 0 0.3rem 0;
+            font-weight: 500;
+            text-align: left;
+        }
+        input, select {
+            width: 100%;
+            padding: 0.7rem;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+            font-family: var(--font);
+            background: #f9f9f9;
+        }
+        button {
+            background: linear-gradient(90deg, var(--saffron), var(--green));
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            padding: 0.8rem 2rem;
+            font-size: 1.1rem;
+            font-family: var(--font);
+            cursor: pointer;
+            margin-top: 1rem;
+            box-shadow: 0 2px 8px rgba(255,153,51,0.08);
+            transition: background 0.2s;
+        }
+        button:hover {
+            background: linear-gradient(90deg, var(--green), var(--saffron));
+        }
+        .dashboard {
+            max-width: 1100px;
+            margin: 2rem auto;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+            justify-content: center;
+        }
+        .dashboard .card {
+            flex: 1 1 320px;
+            min-width: 320px;
+            max-width: 400px;
+            text-align: left;
+        }
+        .progress-bar-bg {
+            background: #eee;
+            border-radius: 10px;
+            height: 22px;
+            width: 100%;
+            margin: 0.5rem 0 1rem 0;
+            overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.6s;
+        }
+        .progress-learning { background: var(--blue);}
+        .progress-relax { background: var(--green);}
+        .progress-stress { background: var(--saffron);}
+        .emoji {
+            font-size: 1.6em;
+            vertical-align: middle;
+            margin-right: 0.3em;
+        }
+        .tip {
+            background: linear-gradient(90deg, #fffbe7, #e6ffe6);
+            border-radius: 12px;
+            padding: 1rem;
+            font-size: 1.1rem;
+            margin: 1rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.7em;
+        }
+        .chatbot-window {
+            background: #f6faff;
+            border-radius: 14px;
+            box-shadow: 0 2px 8px rgba(26,115,232,0.07);
+            padding: 1rem;
+            height: 320px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            overflow: hidden;
+            margin-bottom: 1rem;
+        }
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 0.7rem;
+            font-size: 1.05rem;
+        }
+        .chat-msg {
+            margin: 0.3em 0;
+            display: flex;
+            align-items: flex-end;
+        }
+        .chat-msg.user {
+            justify-content: flex-end;
+        }
+        .chat-bubble {
+            padding: 0.7em 1.1em;
+            border-radius: 16px;
+            max-width: 70%;
+            word-break: break-word;
+            box-shadow: 0 1px 4px rgba(26,115,232,0.04);
+        }
+        .chat-msg.user .chat-bubble {
+            background: var(--blue);
+            color: #fff;
+            border-bottom-right-radius: 4px;
+        }
+        .chat-msg.bot .chat-bubble {
+            background: #fff;
+            color: #222;
+            border-bottom-left-radius: 4px;
+        }
+        .chatbot-input-row {
+            display: flex;
+            gap: 0.5em;
+        }
+        .chatbot-input-row input {
+            flex: 1;
+            margin-bottom: 0;
+        }
+        .quiz-q {
+            margin: 1em 0 0.5em 0;
+            font-weight: 500;
+        }
+        .quiz-options label {
+            display: block;
+            margin: 0.5em 0;
+            cursor: pointer;
+        }
+        .quiz-score {
+            font-size: 1.2em;
+            color: var(--green);
+            font-weight: 600;
+            margin-top: 1em;
+        }
+        .notify-parent {
+            margin-top: 1.5em;
+            background: linear-gradient(90deg, var(--blue), var(--green));
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            padding: 0.7rem 1.5rem;
+            font-size: 1rem;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(26,115,232,0.08);
+        }
+        .parent-info {
+            margin-top: 1em;
+            font-size: 0.98em;
+            color: #555;
+        }
+        @media (max-width: 900px) {
+            .dashboard {
+                flex-direction: column;
+                align-items: center;
+            }
+            .dashboard .card {
+                max-width: 95vw;
+            }
+        }
+        @media (max-width: 600px) {
+            .card {
+                padding: 1.2rem 0.7rem;
+            }
+            .dashboard {
+                gap: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="app"></div>
+    <script>
+        // --- Data ---
+        const TIPS = {
+            Child: [
+                "🌳 Play outside for 30 minutes today.",
+                "📚 Read a fun storybook for 15 minutes.",
+                "🎨 Draw or color something you love.",
+                "🧩 Try a new puzzle or brain game.",
+                "🚴‍♂️ Ride your bicycle or take a walk."
+            ],
+            Teen: [
+                "🧘‍♂️ Try 5 minutes of yoga or deep breathing.",
+                "🎶 Listen to your favorite music and relax.",
+                "📓 Write down 3 things you're grateful for.",
+                "🏃‍♀️ Go for a short jog or walk.",
+                "📱 Take a 1-hour break from social media."
+            ],
+            College: [
+                "🗂️ Organize your notes for 10 minutes.",
+                "☕ Take a mindful tea/coffee break.",
+                "📝 Set 3 small goals for today.",
+                "🤝 Connect with a friend for a quick chat.",
+                "🌳 Spend 15 minutes in nature."
+            ]
+        };
+
+        const QUIZZES = [
+            // Each quiz is an array of {q, options, answer}
+            [
+                {
+                    q: "🌏 Which is the largest continent by area?",
+                    options: ["Africa", "Asia", "Europe", "Australia"],
+                    answer: "Asia"
+                },
+                {
+                    q: "🌱 What gas do plants absorb from the atmosphere?",
+                    options: ["Oxygen", "Carbon Dioxide", "Nitrogen", "Hydrogen"],
+                    answer: "Carbon Dioxide"
+                },
+                {
+                    q: "🔬 Who is known as the father of modern physics?",
+                    options: ["Isaac Newton", "Albert Einstein", "Galileo", "Marie Curie"],
+                    answer: "Albert Einstein"
+                }
+            ],
+            [
+                {
+                    q: "🌊 Which is the longest river in India?",
+                    options: ["Yamuna", "Ganga", "Godavari", "Brahmaputra"],
+                    answer: "Ganga"
+                },
+                {
+                    q: "🌳 Which is the national tree of India?",
+                    options: ["Neem", "Banyan", "Peepal", "Mango"],
+                    answer: "Banyan"
+                },
+                {
+                    q: "🦏 Kaziranga National Park is famous for which animal?",
+                    options: ["Tiger", "Elephant", "One-horned Rhino", "Lion"],
+                    answer: "One-horned Rhino"
+                }
+            ],
+            [
+                {
+                    q: "🌞 What vitamin do we get from sunlight?",
+                    options: ["Vitamin A", "Vitamin B", "Vitamin C", "Vitamin D"],
+                    answer: "Vitamin D"
+                },
+                {
+                    q: "🚀 Who was the first Indian in space?",
+                    options: ["Kalpana Chawla", "Rakesh Sharma", "Sunita Williams", "Vikram Sarabhai"],
+                    answer: "Rakesh Sharma"
+                },
+                {
+                    q: "🌐 What does 'www' stand for in a website browser?",
+                    options: ["World Wide Web", "Web World Wide", "Wide Web World", "World Web Wide"],
+                    answer: "World Wide Web"
+                }
+            ],
+            [
+                {
+                    q: "🦚 What is the national bird of India?",
+                    options: ["Sparrow", "Peacock", "Parrot", "Crow"],
+                    answer: "Peacock"
+                },
+                {
+                    q: "🌲 Which is the largest forest in the world?",
+                    options: ["Amazon", "Congo", "Sundarbans", "Taiga"],
+                    answer: "Amazon"
+                },
+                {
+                    q: "⚡ What is the SI unit of electric current?",
+                    options: ["Volt", "Ampere", "Ohm", "Watt"],
+                    answer: "Ampere"
+                }
+            ],
+            [
+                {
+                    q: "🧪 Water boils at what temperature (Celsius)?",
+                    options: ["90°C", "100°C", "80°C", "120°C"],
+                    answer: "100°C"
+                },
+                {
+                    q: "🗻 Mount Everest is located in which country?",
+                    options: ["India", "Nepal", "China", "Bhutan"],
+                    answer: "Nepal"
+                },
+                {
+                    q: "🌍 Which planet is known as the Red Planet?",
+                    options: ["Venus", "Mars", "Jupiter", "Saturn"],
+                    answer: "Mars"
+                }
+            ]
+        ];
+
+        // --- Utility Functions ---
+        function todayStr() {
+            const d = new Date();
+            return d.toISOString().slice(0,10);
+        }
+        function getLocal(key, def) {
+            try {
+                return JSON.parse(localStorage.getItem(key)) ?? def;
+            } catch { return def; }
+        }
+        function setLocal(key, val) {
+            localStorage.setItem(key, JSON.stringify(val));
+        }
+        function shuffle(arr) {
+            return arr.map(a => [Math.random(), a]).sort((a,b)=>a[0]-b[0]).map(a=>a[1]);
+        }
+
+        // --- App State ---
+        let state = {
+            user: null, // {id, ageGroup, parentMobile}
+            progress: null, // {date, learning, relax, stressRelieved}
+            tip: null, // today's tip
+            quiz: null, // today's quiz {date, idx, answers, score}
+            chat: [] // [{from, msg}]
+        };
+
+        // --- Load/Save State ---
+        function loadState() {
+            state.user = getLocal('swm_user', null);
+            state.progress = getLocal('swm_progress', null);
+            state.tip = getLocal('swm_tip', null);
+            state.quiz = getLocal('swm_quiz', null);
+            state.chat = getLocal('swm_chat', []);
+            // Reset daily data if date changed
+            if (state.progress?.date !== todayStr()) {
+                state.progress = {date: todayStr(), learning: 0, relax: 0, stressRelieved: 0};
+                setLocal('swm_progress', state.progress);
+            }
+            if (state.tip?.date !== todayStr()) {
+                state.tip = null;
+            }
+            if (state.quiz?.date !== todayStr()) {
+                state.quiz = null;
+            }
+        }
+        function saveState() {
+            setLocal('swm_user', state.user);
+            setLocal('swm_progress', state.progress);
+            setLocal('swm_tip', state.tip);
+            setLocal('swm_quiz', state.quiz);
+            setLocal('swm_chat', state.chat);
+        }
+
+        // --- Login ---
+        function renderLogin() {
+            document.body.className = 'centered';
+            document.getElementById('app').innerHTML = `
+                <form class="card" id="loginForm" autocomplete="off">
+                    <h1>🇮🇳 Student Wellness Monitor</h1>
+                    <div style="font-size:1.1em;color:#666;margin-bottom:1em;">
+                        <span class="emoji">🤗</span> Welcome to AI-THON India!
+                    </div>
+                    <label for="id">Student ID</label>
+                    <input id="id" required maxlength="20" placeholder="Enter your ID">
+                    <label for="pass">Passcode</label>
+                    <input id="pass" type="password" required maxlength="20" placeholder="Enter passcode">
+                    <label for="age">Age Group</label>
+                    <select id="age" required>
+                        <option value="">Select</option>
+                        <option value="Child">Child (6–12)</option>
+                        <option value="Teen">Teen (13–18)</option>
+                        <option value="College">College Student (18+)</option>
+                    </select>
+                    <label for="parent">Parent's Mobile Number</label>
+                    <input id="parent" type="tel" pattern="\\d{10}" maxlength="10" required placeholder="10-digit mobile">
+                    <button type="submit">Login</button>
+                </form>
+            `;
+            document.getElementById('loginForm').onsubmit = e => {
+                e.preventDefault();
+                const id = document.getElementById('id').value.trim();
+                const pass = document.getElementById('pass').value.trim();
+                const ageGroup = document.getElementById('age').value;
+                const parentMobile = document.getElementById('parent').value.trim();
+                if (!/^\d{10}$/.test(parentMobile)) {
+                    alert('Enter a valid 10-digit mobile number.');
+                    return;
+                }
+                state.user = {id, pass, ageGroup, parentMobile};
+                setLocal('swm_user', state.user);
+                renderDashboard();
+            };
+        }
+
+        // --- Dashboard ---
+        function renderDashboard() {
+            document.body.className = '';
+            // Prepare tip and quiz for today if not already
+            prepareTip();
+            prepareQuiz();
+            saveState();
+            document.getElementById('app').innerHTML = `
+                <div style="text-align:right;max-width:1100px;margin:0 auto 0.5em auto;">
+                    <button style="background:var(--saffron);padding:0.4em 1.2em;font-size:0.98em;border-radius:8px;" onclick="logoutSWM()">Logout</button>
+                </div>
+                <div class="dashboard">
+                    <div class="card">
+                        <h2><span class="emoji">📊</span> Daily Time Tracker</h2>
+                        <div>
+                            <b>Learning:</b>
+                            <div class="progress-bar-bg">
+                                <div class="progress-bar progress-learning" id="bar-learning" style="width:${state.progress.learning*10}%"></div>
+                            </div>
+                            <span id="learning-hours">${state.progress.learning}</span> hrs
+                            <button onclick="addTime('learning',1)">+1 hr</button>
+                            <button onclick="addTime('learning',-1)" style="background:#eee;color:#333;">-1 hr</button>
+                        </div>
+                        <div style="margin-top:1em;">
+                            <b>Relaxation:</b>
+                            <div class="progress-bar-bg">
+                                <div class="progress-bar progress-relax" id="bar-relax" style="width:${state.progress.relax*10}%"></div>
+                            </div>
+                            <span id="relax-hours">${state.progress.relax}</span> hrs
+                            <button onclick="addTime('relax',1)">+1 hr</button>
+                            <button onclick="addTime('relax',-1)" style="background:#eee;color:#333;">-1 hr</button>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h2><span class="emoji">😌</span> Stress Relief Meter</h2>
+                        <div>
+                            <div class="progress-bar-bg">
+                                <div class="progress-bar progress-stress" id="bar-stress" style="width:${state.progress.stressRelieved}%"></div>
+                            </div>
+                            <div style="font-size:1.1em;margin:0.7em 0;">
+                                <span id="stress-feedback">${getStressFeedback()}</span>
+                            </div>
+                            <button onclick="relieveStress(10)">+10% Relieved</button>
+                            <button onclick="relieveStress(-10)" style="background:#eee;color:#333;">-10%</button>
+                        </div>
+                        <div class="tip" style="margin-top:1.5em;">
+                            <span class="emoji">🌟</span>
+                            <span id="wellness-tip">${state.tip.tip}</span>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h2><span class="emoji">🤖</span> AI Chatbot Friend</h2>
+                        <div class="chatbot-window">
+                            <div class="chat-messages" id="chat-messages"></div>
+                            <div class="chatbot-input-row">
+                                <input id="chat-input" type="text" maxlength="200" placeholder="Type your message..." autocomplete="off">
+                                <button type="button" onclick="sendChat()">Send</button>
+                            </div>
+                        </div>
+                        <div style="font-size:0.95em;color:#888;">Your supportive AI friend is here to listen! <span class="emoji">💬</span></div>
+                    </div>
+                    <div class="card">
+                        <h2><span class="emoji">🧠</span> Stress Relief Quiz</h2>
+                        <div id="quiz-area"></div>
+                    </div>
+                    <div class="card">
+                        <h2><span class="emoji">👨‍👩‍👧‍👦</span> Parent Connectivity</h2>
+                        <div class="parent-info">
+                            Parent Mobile: <b>${state.user.parentMobile}</b>
+                        </div>
+                        <button class="notify-parent" onclick="notifyParent()">Notify Parent</button>
+                        <div id="parent-alert" style="margin-top:1em;color:var(--blue);font-weight:500;"></div>
+                    </div>
+                </div>
+            `;
+            updateTimeBars();
+            renderChat();
+            renderQuiz();
+        }
+
+        // --- Time Tracker ---
+        window.addTime = function(type, delta) {
+            if (type === 'learning') {
+                state.progress.learning = Math.max(0, Math.min(10, state.progress.learning + delta));
+            } else {
+                state.progress.relax = Math.max(0, Math.min(10, state.progress.relax + delta));
+            }
+            setLocal('swm_progress', state.progress);
+            updateTimeBars();
+        };
+        function updateTimeBars() {
+            document.getElementById('bar-learning').style.width = (state.progress.learning*10) + '%';
+            document.getElementById('bar-relax').style.width = (state.progress.relax*10) + '%';
+            document.getElementById('learning-hours').textContent = state.progress.learning;
+            document.getElementById('relax-hours').textContent = state.progress.relax;
+        }
+
+        // --- Stress Relief Meter ---
+        window.relieveStress = function(delta) {
+            state.progress.stressRelieved = Math.max(0, Math.min(100, state.progress.stressRelieved + delta));
+            setLocal('swm_progress', state.progress);
+            document.getElementById('bar-stress').style.width = state.progress.stressRelieved + '%';
+            document.getElementById('stress-feedback').textContent = getStressFeedback();
+        };
+        function getStressFeedback() {
+            const v = state.progress.stressRelieved;
+            if (v === 0) return "Let's start relieving stress today! 🌱";
+            if (v < 30) return `You relieved ${v}% stress today. Keep going! 💪`;
+            if (v < 70) return `Great! ${v}% stress relieved. You're doing well! 😊`;
+            if (v < 100) return `Amazing! ${v}% stress relieved. Almost there! 🌈`;
+            return "🎉 100% stress relieved! Take a moment to celebrate!";
+        }
+
+        // --- Wellness Tip ---
+        function prepareTip() {
+            if (state.tip && state.tip.date === todayStr()) return;
+            // Track used tips per age group
+            let used = getLocal('swm_tips_used', {});
+            if (!used[state.user.ageGroup]) used[state.user.ageGroup] = [];
+            const tipsArr = TIPS[state.user.ageGroup];
+            const unused = tipsArr.filter((_,i)=>!used[state.user.ageGroup].includes(i));
+            let idx;
+            if (unused.length === 0) {
+                used[state.user.ageGroup] = [];
+                idx = 0;
+            } else {
+                idx = tipsArr.indexOf(unused[0]);
+            }
+            used[state.user.ageGroup].push(idx);
+            setLocal('swm_tips_used', used);
+            state.tip = {date: todayStr(), tip: tipsArr[idx]};
+            setLocal('swm_tip', state.tip);
+        }
+
+        // --- Quiz ---
+        function prepareQuiz() {
+            if (state.quiz && state.quiz.date === todayStr()) return;
+            let used = getLocal('swm_quiz_used', []);
+            let idx = 0;
+            for (; idx < QUIZZES.length; idx++) {
+                if (!used.includes(idx)) break;
+            }
+            if (idx === QUIZZES.length) {
+                used = [];
+                idx = 0;
+            }
+            used.push(idx);
+            setLocal('swm_quiz_used', used);
+            state.quiz = {date: todayStr(), idx, answers: [], score: null};
+            setLocal('swm_quiz', state.quiz);
+        }
+        function renderQuiz() {
+            const quiz = QUIZZES[state.quiz.idx];
+            const area = document.getElementById('quiz-area');
+            if (state.quiz.score !== null) {
+                area.innerHTML = `
+                    <div class="quiz-score">Your Score: ${state.quiz.score} / ${quiz.length} 🎉</div>
+                    <button onclick="resetQuiz()">Try Again</button>
+                `;
+                return;
+            }
+            let html = '';
+            quiz.forEach((q, i) => {
+                html += `
+                    <div class="quiz-q">${i+1}. ${q.q}</div>
+                    <div class="quiz-options">
+                        ${q.options.map(opt=>`
+                            <label>
+                                <input type="radio" name="quiz${i}" value="${opt}" ${state.quiz.answers[i]===opt?'checked':''}>
+                                ${opt}
+                            </label>
+                        `).join('')}
+                    </div>
+                `;
+            });
+            html += `<button onclick="submitQuiz()">Submit Quiz</button>`;
+            area.innerHTML = html;
+            // Restore checked answers
+            quiz.forEach((q,i)=>{
+                document.querySelectorAll(`input[name="quiz${i}"]`).forEach(inp=>{
+                    inp.onchange = ()=> {
+                        state.quiz.answers[i] = inp.value;
+                        setLocal('swm_quiz', state.quiz);
+                    };
+                });
+            });
+        }
+        window.submitQuiz = function() {
+            const quiz = QUIZZES[state.quiz.idx];
+            let score = 0;
+            for (let i=0; i<quiz.length; ++i) {
+                if (state.quiz.answers[i] === quiz[i].answer) score++;
+            }
+            state.quiz.score = score;
+            setLocal('swm_quiz', state.quiz);
+            renderQuiz();
+        };
+        window.resetQuiz = function() {
+            state.quiz.answers = [];
+            state.quiz.score = null;
+            setLocal('swm_quiz', state.quiz);
+            renderQuiz();
+        };
+
+        // --- Chatbot ---
+        function renderChat() {
+            const chatDiv = document.getElementById('chat-messages');
+            chatDiv.innerHTML = state.chat.map(msg =>
+                `<div class="chat-msg ${msg.from}">
+                    <div class="chat-bubble">${msg.msg}</div>
+                </div>`
+            ).join('');
+            chatDiv.scrollTop = chatDiv.scrollHeight;
+            document.getElementById('chat-input').onkeydown = e => {
+                if (e.key === 'Enter') sendChat();
+            };
+        }
+        window.sendChat = function() {
+            const inp = document.getElementById('chat-input');
+            const text = inp.value.trim();
+            if (!text) return;
+            state.chat.push({from:'user', msg: text});
+            inp.value = '';
+            renderChat();
+            setTimeout(()=> {
+                const reply = getBotReply(text);
+                state.chat.push({from:'bot', msg: reply});
+                setLocal('swm_chat', state.chat);
+                renderChat();
+            }, 600);
+            setLocal('swm_chat', state.chat);
+        };
+        function getBotReply(msg) {
+            // Placeholder: Motivational, friendly, context-aware
+            const lower = msg.toLowerCase();
+            if (lower.includes('stress') || lower.includes('tired')) {
+                return "It's okay to feel stressed sometimes. Take a deep breath and remember, you're doing great! 🌈";
+            }
+            if (lower.includes('hello') || lower.includes('hi')) {
+                return "Hi there! 😊 How can I help you today?";
+            }
+            if (lower.includes('sad') || lower.includes('upset')) {
+                return "I'm here for you. Want to talk about it? Remember, every day is a new beginning. 🌅";
+            }
+            if (lower.includes('thank')) {
+                return "You're most welcome! Keep shining! ✨";
+            }
+            if (lower.includes('motivate') || lower.includes('motivation')) {
+                return "Believe in yourself! Every small step counts. You can do it! 💪";
+            }
+            if (lower.includes('quiz')) {
+                return "Today's quiz is ready for you in the dashboard. Give it a try! 🧠";
+            }
+            // Default
+            const replies = [
+                "I'm always here to listen. Tell me more! 😊",
+                "Remember to take breaks and smile! 😄",
+                "You're stronger than you think. Keep going! 🌟",
+                "If you need tips to relax, just ask me!",
+                "Let's make today awesome together! 🚀"
+            ];
+            return replies[Math.floor(Math.random()*replies.length)];
+        }
+
+        // --- Parent Connectivity ---
+        window.notifyParent = function() {
+            const msg = `Parent notified: Student's stress relief today is ${state.progress.stressRelieved}%.`;
+            document.getElementById('parent-alert').textContent = msg + " (Dummy alert sent!)";
+            setTimeout(()=>{document.getElementById('parent-alert').textContent='';}, 4000);
+        };
+
+        // --- Logout ---
+        window.logoutSWM = function() {
+            localStorage.removeItem('swm_user');
+            location.reload();
+        };
+
+        // --- App Init ---
+        function main() {
+            loadState();
+            if (!state.user) renderLogin();
+            else renderDashboard();
+        }
+        main();
+    </script>
+    <!-- Place this inside the dashboard (after the last .card div) -->
+<div class="card">
+  <h2><span class="emoji">🎮</span> Mini Games Zone</h2>
+  <p style="font-size:0.95em;color:#666;">Play & relax with quick fun games!</p>
+  
+  
+  <button onclick="playTicTacToe()">⭕❌ Tic Tac Toe</button>
+
+  <div id="game-area" style="margin-top:1em;font-size:1.05em;color:#333;"></div>
+</div>
+
+<script>
+  // --- Mini Games ---
+
+ 
+
+  function playTicTacToe() {
+    const area = document.getElementById("game-area");
+    let board = ["", "", "", "", "", "", "", "", ""];
+    let turn = "X";
+    area.innerHTML = `
+      <div style="display:grid;grid-template-columns:repeat(3,80px);gap:5px;justify-content:center;">
+        ${board.map((_,i)=>`<div id="cell${i}" 
+          onclick="makeMove(${i})" 
+          style="width:80px;height:80px;display:flex;align-items:center;justify-content:center;
+          font-size:2em;border:2px solid #1a73e8;cursor:pointer;background:#f9f9f9;"></div>`).join("")}
+      </div>
+      <div id="ttt-status" style="margin-top:0.5em;color:#138808;font-weight:600;">Turn: ${turn}</div>
+    `;
+
+    window.makeMove = function(i){
+      if (board[i] !== "") return;
+      board[i] = turn;
+      document.getElementById("cell"+i).textContent = turn;
+      if (checkWin(board, turn)) {
+        document.getElementById("ttt-status").innerHTML = `🎉 ${turn} Wins!`;
+        return;
+      }
+      if (board.every(c=>c!=="")) {
+        document.getElementById("ttt-status").innerHTML = "🤝 It's a Draw!";
+        return;
+      }
+      turn = (turn==="X")?"O":"X";
+      document.getElementById("ttt-status").innerHTML = `Turn: ${turn}`;
+    }
+
+    function checkWin(b, p) {
+      const wins = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+      return wins.some(w => w.every(i=>b[i]===p));
+    }
+  }
+</script>
+
+</body>
+</html>
